@@ -105,14 +105,18 @@ if st.button("Save Marks"):
         df_results.loc[df_results['ID'] == int(candidate), selected_question] = mark
     
     # Write the updated results back to Google Sheets
-    conn.write(spreadsheet=spreadsheet_url, dataframe=df_results)
+    conn.update(spreadsheet=spreadsheet_url, data=df_results)
     st.success(f"Marks for {selected_question} have been saved to Google Sheets!")
     st.dataframe(df_results)
 
-# Display remaining unmarked questions
 def get_unmarked(question):
-    unmarked = list(df_results[question].values).count('-')
-    return unmarked
+    question = question.strip().replace('\xa0', ' ')  # Normalize
+    if question in df_results.columns:
+        return list(df_results[question].values).count('-')
+    else:
+        st.warning(f"⚠️ Question '{question}' not found in Google Sheets.")
+        return 0  # Return 0 to avoid breaking the loop
+
 
 questions_left = [q for q in questions if get_unmarked(q) > 0]
 st.write(f"Remaining Unmarked Questions: {len(questions_left)}/{len(questions)}")
